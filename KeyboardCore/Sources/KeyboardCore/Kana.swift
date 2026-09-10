@@ -1,6 +1,6 @@
 /// かなの変換に使う小さな道具
 public enum Kana {
-    /// カタカナをひらがなにする。ァ（U+30A１）〜ヶ（U+30F6）だけを変え、ほかの文字はそのまま。
+    /// カタカナをひらがなにする。ァ（U+30A1）〜ヶ（U+30F6）だけを変え、ほかの文字はそのまま。
     public static func toHiragana(_ s: String) -> String {
         var scalars = String.UnicodeScalarView()
         for u in s.unicodeScalars {
