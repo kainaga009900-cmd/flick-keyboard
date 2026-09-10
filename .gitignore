@@ -1,0 +1,14 @@
+# XcodeGen が作るもの
+*.xcodeproj/
+Support/
+# 組み立てで出るもの
+.build/
+.swiftpm/
+DerivedData/
+build/
+*.xcarchive
+# 辞書（scripts/fetch-dictionary.sh で取ってくる）
+Vendor/
+# 鍵は絶対に入れない
+private_keys/
+*.p8

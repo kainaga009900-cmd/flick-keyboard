@@ -1,0 +1,16 @@
+name: core-tests
+on:
+  push:
+    paths:
+      - "KeyboardCore/**"
+      - ".github/workflows/core-tests.yml"
+  pull_request:
+    paths:
+      - "KeyboardCore/**"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test KeyboardCore
+        run: swift test --package-path KeyboardCore
