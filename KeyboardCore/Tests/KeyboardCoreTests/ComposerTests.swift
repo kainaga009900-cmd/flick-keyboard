@@ -214,4 +214,20 @@ final class ComposerTests: XCTestCase {
         composer.abandon()
         XCTAssertEqual(composer.learning.count(reading: "かいぎ", text: "回議"), 1)
     }
+
+    func testLearningRevisionChangesOnlyWhenLearningChanges() {
+        XCTAssertEqual(composer.learningRevision, 0)
+        choose(2)
+        XCTAssertEqual(composer.learningRevision, 0)        // まだ回数に入れていない
+        clock.advance(10)
+        _ = composer.type("か")
+        XCTAssertEqual(composer.learningRevision, 1)        // 数えた
+        _ = composer.flush()
+        choose(2)
+        clock.advance(1)
+        _ = composer.backspace()                            // 5秒以内の ⌫ → 数えない
+        XCTAssertEqual(composer.learningRevision, 1)
+        composer.forgetAll()
+        XCTAssertEqual(composer.learningRevision, 2)
+    }
 }

@@ -27,6 +27,7 @@ public final class Composer {
     /// 空白キーで選んでいる変換の段の位置
     public private(set) var highlighted: Int?
     public private(set) var learning: LearningStore
+    public private(set) var learningRevision = 0
 
     private let provider: CandidateProvider
     private let now: () -> Date
@@ -149,6 +150,7 @@ public final class Composer {
     public func forgetAll() {
         learning.reset()
         pending = nil
+        learningRevision += 1
     }
 
     // MARK: - 内部
@@ -159,6 +161,7 @@ public final class Composer {
         pending = nil
         if isBackspace && now().timeIntervalSince(p.at) <= Self.undoWindow { return }
         learning.record(reading: p.reading, text: p.text, at: p.at)
+        learningRevision += 1
     }
 
     private func finishComposition() {

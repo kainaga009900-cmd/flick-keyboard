@@ -26,6 +26,8 @@ final class KeyboardState: ObservableObject {
     private let learningURL: URL
     private let writer = ProxyWriter()
     private var lastDocumentID: UUID?
+    private var savedRevision = 0
+    private var pendingSave: DispatchWorkItem?
 
     init(controller: UIInputViewController) {
         self.controller = controller
@@ -122,6 +124,7 @@ final class KeyboardState: ObservableObject {
             composer.abandon()
             writer.reset()
             publish()
+            scheduleSaveIfNeeded()
         }
     }
 
@@ -133,7 +136,20 @@ final class KeyboardState: ObservableObject {
     // MARK: - 内部
 
     private func persist() {
+        pendingSave?.cancel()
+        pendingSave = nil
         try? composer.learning.save(to: learningURL)
+        savedRevision = composer.learningRevision
+    }
+
+    private func scheduleSaveIfNeeded() {
+        guard composer.learningRevision != savedRevision else { return }
+        pendingSave?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated { self?.persist() }
+        }
+        pendingSave = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: work)
     }
 
     private func apply(_ ops: [TextOp]) {
@@ -143,6 +159,7 @@ final class KeyboardState: ObservableObject {
             }
         }
         publish()
+        scheduleSaveIfNeeded()
     }
 
     private func publish() {
