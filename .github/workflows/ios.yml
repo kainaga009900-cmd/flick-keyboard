@@ -39,3 +39,52 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO
+  upload:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.UPLOAD_ENABLED == 'true'
+    runs-on: macos-26
+    env:
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache dictionary
+        uses: actions/cache@v4
+        with:
+          path: Vendor/azooKey_dictionary_storage
+          key: dictionary-832fbb0d3039dfaa4b2183956f3d96f6b07eec4d
+      - name: Fetch dictionary
+        run: bash scripts/fetch-dictionary.sh
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild archive \
+            -project FlickKeyboard.xcodeproj \
+            -scheme FlickKeyboard \
+            -sdk iphoneos \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/FlickKeyboard.xcarchive \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Write API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          mkdir -p private_keys
+          printf '%s\n' "$ASC_KEY_P8" > private_keys/AuthKey.p8
+      - name: Sign with cloud signing and upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          plutil -replace teamID -string "$APPLE_TEAM_ID" ci/ExportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath build/FlickKeyboard.xcarchive \
+            -exportOptionsPlist ci/ExportOptions.plist \
+            -exportPath build/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$PWD/private_keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
