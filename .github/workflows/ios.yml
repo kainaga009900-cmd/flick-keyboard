@@ -1,0 +1,41 @@
+name: ios
+on:
+  push:
+    branches: [main]
+    paths:
+      - "App/**"
+      - "Keyboard/**"
+      - "KeyboardCore/**"
+      - "project.yml"
+      - "ci/**"
+      - "scripts/fetch-dictionary.sh"
+      - ".github/workflows/ios.yml"
+  pull_request:
+  workflow_dispatch:
+env:
+  BUILD_NUMBER: ${{ github.run_number }}
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache dictionary
+        uses: actions/cache@v4
+        with:
+          path: Vendor/azooKey_dictionary_storage
+          key: dictionary-832fbb0d3039dfaa4b2183956f3d96f6b07eec4d
+      - name: Fetch dictionary
+        run: bash scripts/fetch-dictionary.sh
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Build (no signing)
+        run: |
+          xcodebuild build \
+            -project FlickKeyboard.xcodeproj \
+            -scheme FlickKeyboard \
+            -sdk iphoneos \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO
