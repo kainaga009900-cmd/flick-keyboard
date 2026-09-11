@@ -54,13 +54,13 @@
 
 ### 3.3 エンジンの設定
 
-変換エンジンは azooKey の [AzooKeyKanaKanjiConverter](https://github.com/azooKey/AzooKeyKanaKanjiConverter)（MIT ライセンス）を使う。`ConvertRequestOptions` は次のようにする。
+変換エンジンは azooKey の [AzooKeyKanaKanjiConverter](https://github.com/azooKey/AzooKeyKanaKanjiConverter)（MIT ライセンス、実際に使うのは 0.11.2）を使う。`ConvertRequestOptions` は次のようにする。
 
 | 設定 | 値 | 理由 |
 |---|---|---|
-| `typoCorrectionMode` | `.disabled` | 打ち間違いの自動補正を出さない |
-| `requireJapanesePrediction` | `.manualMix` | 予測を変換候補と分けて受け取り、予測の段にだけ出す |
-| `requireEnglishPrediction` | `.disabled` | 日本語フリックでは不要 |
+| `needTypoCorrection` | `false` | 打ち間違いの自動補正を出さない |
+| `requireJapanesePrediction` | `true` | 予測も受け取る。0.11.2 では変換候補と予測が分かれておらず、最大3件の予測が変換候補のリストに混ざって返ってくる。`CandidateFilter` が読みで振り分け、予測の段にはその中から読みが一致するものだけを出す（0〜1件のことが多く、多くても3件） |
+| `requireEnglishPrediction` | `false` | 日本語フリックでは不要 |
 | `learningType` | `.nothing` | エンジンには覚えさせない（覚え方は 4 章の自前ルールで管理） |
 | `zenzaiMode` | `.off` | AI 変換モデルは使わない（容量とメモリを抑える） |
 
@@ -68,6 +68,8 @@
 
 - 変換の段：読みが「打った読み全体」または「打った読みの頭から区切った部分」と一致しないものは捨てる。
 - 予測の段：読みが打った読みで始まらないものは捨てる。
+
+（変換候補と予測が別々に返ってくる azooKey の版に移ることは v1.x で検討する。）
 
 ## 4. 覚え方のルール
 
