@@ -20,9 +20,12 @@ struct KeyboardView: View {
         switch state.mode {
         case .kana, .alphabet, .number:
             KeyGrid(state: state)
-        case .symbol, .emoji, .settings:
-            // Task 8 で専用の画面に置き換える。それまではキーを出しておく。
-            KeyGrid(state: state)
+        case .symbol:
+            SymbolPanel(state: state)
+        case .emoji(let tab):
+            EmojiPanel(state: state, tab: tab)
+        case .settings:
+            SettingsPanel(state: state)
         }
     }
 }
