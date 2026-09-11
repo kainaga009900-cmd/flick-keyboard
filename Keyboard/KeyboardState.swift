@@ -25,6 +25,7 @@ final class KeyboardState: ObservableObject {
     private let composer: Composer
     private let learningURL: URL
     private let writer = ProxyWriter()
+    private var lastDocumentID: UUID?
 
     init(controller: UIInputViewController) {
         self.controller = controller
@@ -113,6 +114,17 @@ final class KeyboardState: ObservableObject {
         persist()
     }
 
+    /// 入力欄の中身が外から変わったか調べる（KeyboardViewController.textDidChange から呼ぶ）
+    func hostTextChanged(documentID: UUID, hasText: Bool) {
+        defer { lastDocumentID = documentID }
+        guard composer.isComposing else { return }
+        if documentID != lastDocumentID || !hasText {
+            composer.abandon()
+            writer.reset()
+            publish()
+        }
+    }
+
     func flushAndPersist() {
         apply(composer.flush())
         persist()
@@ -130,6 +142,10 @@ final class KeyboardState: ObservableObject {
                 writer.apply(op, to: proxy)
             }
         }
+        publish()
+    }
+
+    private func publish() {
         reading = composer.reading
         candidates = composer.candidates
         highlighted = composer.highlighted

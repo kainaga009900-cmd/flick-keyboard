@@ -37,4 +37,9 @@ final class KeyboardViewController: UIInputViewController {
         state?.flushAndPersist()
         super.viewWillDisappear(animated)
     }
+
+    override func textDidChange(_ textInput: UITextInput?) {
+        super.textDidChange(textInput)
+        state?.hostTextChanged(documentID: textDocumentProxy.documentIdentifier, hasText: textDocumentProxy.hasText)
+    }
 }

@@ -33,4 +33,9 @@ final class ProxyWriter {
             }
         }
     }
+
+    /// 入力欄の中身が外から変わったときに呼ぶ。仮の文字（marked text）はもうないものとして扱う。
+    func reset() {
+        hasMarkedText = false
+    }
 }

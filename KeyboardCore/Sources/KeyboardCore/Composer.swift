@@ -138,6 +138,14 @@ public final class Composer {
         return [.commit(text)]
     }
 
+    /// 入力欄の中身が外から変わったとき（別の欄に移った・送信で空になった）に呼ぶ。
+    /// 入力欄には何も書かず、打ちかけの状態だけを捨てる。直前の確定は（⌫ ではないので）回数に入れる。
+    public func abandon() {
+        settlePending(isBackspace: false)
+        guard !reading.isEmpty else { return }
+        finishComposition()
+    }
+
     public func forgetAll() {
         learning.reset()
         pending = nil
