@@ -198,4 +198,20 @@ final class ComposerTests: XCTestCase {
         XCTAssertEqual(composer.flush(), [.commit("かい")])
         XCTAssertEqual(composer.reading, "")
     }
+
+    func testAbandonDropsTheReadingWithoutWritingAnything() {
+        _ = composer.type("かいぎ")
+        composer.abandon()
+        XCTAssertEqual(composer.reading, "")
+        XCTAssertEqual(composer.candidates, .empty)
+        XCTAssertEqual(provider.resetCount, 1)
+        XCTAssertEqual(composer.type("あ"), [.setComposing("あ")])
+    }
+
+    func testAbandonCountsThePreviousChoice() {
+        choose(2)
+        clock.advance(1)
+        composer.abandon()
+        XCTAssertEqual(composer.learning.count(reading: "かいぎ", text: "回議"), 1)
+    }
 }
