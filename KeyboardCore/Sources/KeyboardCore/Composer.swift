@@ -91,7 +91,8 @@ public final class Composer {
         guard !candidates.main.isEmpty else { return [] }
         let next = ((highlighted ?? -1) + 1) % candidates.main.count
         highlighted = next
-        return [.setComposing(candidates.main[next].text)]
+        let item = candidates.main[next]
+        return [.setComposing(item.text + String(reading.dropFirst(item.reading.count)))]
     }
 
     public func enter() -> [TextOp] {

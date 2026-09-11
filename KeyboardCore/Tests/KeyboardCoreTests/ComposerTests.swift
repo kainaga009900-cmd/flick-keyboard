@@ -230,4 +230,18 @@ final class ComposerTests: XCTestCase {
         composer.forgetAll()
         XCTAssertEqual(composer.learningRevision, 2)
     }
+
+    func testHighlightingAPartialCandidateKeepsTheRestVisible() {
+        _ = composer.type("あしたかいぎ")
+        XCTAssertEqual(composer.space(), [.setComposing("明日会議")])
+        XCTAssertEqual(composer.space(), [.setComposing("明日かいぎ")])
+    }
+
+    func testTheSameListForBothRowsIsSplitByReading() {
+        let list = [c("会議", "かいぎ"), c("会議室", "かいぎしつ"), c("貝", "かい"), c("開始", "かいし")]
+        provider.table["かいぎ"] = CandidateSet(main: list, predictions: list)
+        _ = composer.type("かいぎ")
+        XCTAssertEqual(composer.candidates.main.map(\.text), ["会議", "貝"])
+        XCTAssertEqual(composer.candidates.predictions.map(\.text), ["会議室"])
+    }
 }
