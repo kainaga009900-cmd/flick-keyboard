@@ -38,7 +38,18 @@ jobs:
             -sdk iphoneos \
             -configuration Release \
             -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO
+      - name: Check build number in Info.plist
+        run: |
+          APP=build/DerivedData/Build/Products/Release-iphoneos/FlickKeyboard.app
+          for plist in "$APP/Info.plist" "$APP/PlugIns/KeyboardExtension.appex/Info.plist"; do
+            v=$(plutil -extract CFBundleVersion raw "$plist")
+            s=$(plutil -extract CFBundleShortVersionString raw "$plist")
+            echo "$plist: CFBundleVersion=$v CFBundleShortVersionString=$s"
+            test "$v" = "$BUILD_NUMBER"
+            test "$s" = "1.0"
+          done
   upload:
     needs: build
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.UPLOAD_ENABLED == 'true'
