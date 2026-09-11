@@ -106,6 +106,25 @@ final class ComposerTests: XCTestCase {
         XCTAssertEqual(composer.learning.count(reading: "かいぎ", text: "回議"), 1)
     }
 
+    func testEditingTheRestAfterAPartialChoiceStillCountsTheChoice() {
+        _ = composer.type("あしたかいぎ")
+        _ = composer.selectCandidate(at: 1)   // 明日 を確定、かいぎ が残る
+        clock.advance(1)
+        _ = composer.backspace()              // 残りの読みを消すだけで、明日 は消していない
+        _ = composer.type("と")
+        XCTAssertEqual(composer.learning.count(reading: "あした", text: "明日"), 1)
+    }
+
+    func testDeletingIntoAPartialChoiceWithinFiveSecondsIsNotCounted() {
+        _ = composer.type("あしたかいぎ")
+        _ = composer.selectCandidate(at: 1)   // 明日 を確定、かいぎ が残る
+        clock.advance(1)
+        for _ in 0..<3 { _ = composer.backspace() }   // かいぎ を全部消す
+        XCTAssertEqual(composer.backspace(), [.deleteBackward(1)])   // 明日 に食い込む
+        _ = composer.type("と")
+        XCTAssertEqual(composer.learning.count(reading: "あした", text: "明日"), 0)
+    }
+
     func testSpaceCyclesCandidatesAndEnterConfirmsTheHighlightedOne() {
         _ = composer.type("かいぎ")
         XCTAssertEqual(composer.space(), [.setComposing("会議")])
