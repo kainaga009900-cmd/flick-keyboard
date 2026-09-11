@@ -3,7 +3,7 @@ import KanaKanjiConverterModule
 import KeyboardCore
 
 /// azooKey の変換エンジンを KeyboardCore.CandidateProvider として使う。
-/// 設定は設計書 3.3：打ち間違い補正なし・予測は分けて受け取る・エンジン側では覚えない。
+/// 設定は設計書 3.3：打ち間違い補正なし・エンジン側では覚えない。予測は変換の候補に混ざって返るので、KeyboardCore.CandidateFilter が読みで振り分ける。
 final class AzooKeyProvider: KeyboardCore.CandidateProvider {
     private let converter: KanaKanjiConverter
     private let options: ConvertRequestOptions

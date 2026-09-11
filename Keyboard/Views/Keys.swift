@@ -62,7 +62,8 @@ struct SideKey: View {
     }
 }
 
-/// 押しっぱなしで繰り返すボタン（⌫ とカーソルの ← →）
+/// 押しっぱなしで繰り返すボタン（⌫ とカーソルの ← →）。
+/// 指が触れた瞬間に 1回動き、0.4秒押し続けると 0.08秒ごとに繰り返す。指を離すと止まる。
 struct RepeatButton<Label: View>: View {
     let action: () -> Void
     @ViewBuilder let label: () -> Label
@@ -72,18 +73,26 @@ struct RepeatButton<Label: View>: View {
         label()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
-            .onTapGesture { action() }
-            .onLongPressGesture(minimumDuration: 0.4, perform: {
-                timer?.invalidate()
-                timer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { _ in
-                    action()
-                }
-            }, onPressingChanged: { pressing in
-                if !pressing {
-                    timer?.invalidate()
-                    timer = nil
-                }
-            })
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard timer == nil else { return }
+                        action()
+                        let start = Date()
+                        timer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { _ in
+                            if Date().timeIntervalSince(start) >= 0.4 {
+                                action()
+                            }
+                        }
+                    }
+                    .onEnded { _ in stop() }
+            )
+            .onDisappear { stop() }
+    }
+
+    private func stop() {
+        timer?.invalidate()
+        timer = nil
     }
 }
 
