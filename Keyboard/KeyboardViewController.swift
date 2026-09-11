@@ -33,6 +33,11 @@ final class KeyboardViewController: UIInputViewController {
         state?.needsGlobe = needsInputModeSwitchKey
     }
 
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        state?.needsGlobe = needsInputModeSwitchKey
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         state?.flushAndPersist()
         super.viewWillDisappear(animated)
