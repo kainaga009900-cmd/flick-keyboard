@@ -12,8 +12,9 @@ final class AzooKeyProvider: KeyboardCore.CandidateProvider {
         converter = KanaKanjiConverter(dictionaryURL: dictionaryURL, preloadDictionary: false)
         options = ConvertRequestOptions(
             N_best: 10,
-            requireJapanesePrediction: .manualMix,
-            requireEnglishPrediction: .disabled,
+            needTypoCorrection: false,
+            requireJapanesePrediction: true,
+            requireEnglishPrediction: false,
             keyboardLanguage: .ja_JP,
             learningType: .nothing,
             memoryDirectoryURL: workDirectory,
@@ -21,7 +22,6 @@ final class AzooKeyProvider: KeyboardCore.CandidateProvider {
             textReplacer: .empty,
             specialCandidateProviders: [],
             zenzaiMode: .off,
-            typoCorrectionMode: .disabled,
             metadata: .init(versionString: "FlickKeyboard 1.0")
         )
     }
@@ -30,10 +30,10 @@ final class AzooKeyProvider: KeyboardCore.CandidateProvider {
         var composing = ComposingText()
         composing.insertAtCursorPosition(reading, inputStyle: .direct)
         let result = converter.requestCandidates(composing, options: options)
-        return KeyboardCore.CandidateSet(
-            main: result.mainResults.map(Self.item),
-            predictions: result.predictionResults.map(Self.item)
-        )
+        // このバージョンの azooKey は変換候補と予測候補を分けて返さない（mainResults に混ざって入る）ので、
+        // 同じ一覧を両方に渡し、KeyboardCore.CandidateFilter に読みの長さで振り分けてもらう。
+        let items = result.mainResults.map(Self.item)
+        return KeyboardCore.CandidateSet(main: items, predictions: items)
     }
 
     func reset() {
